@@ -1,0 +1,33 @@
+# usesextant.com — static site
+
+Zero build step, zero dependencies, zero trackers. Fonts are self-hosted (OFL).
+
+## Before you ship
+1. **Newsletter:** in `index.html`, replace `YOUR_USERNAME` in the Buttondown form action.
+2. Check the proof strip (tests / tools / dates) is still current.
+
+## Deploy — GitHub Pages (free, recommended)
+1. Create repo `protechtus/usesextant.com` (or a `gh-pages` branch) and push the contents of this folder to its root.
+2. Repo → Settings → Pages → Source: *Deploy from a branch*, `main` / root.
+3. `CNAME` already contains `usesextant.com`. At your DNS provider add:
+   - `A` @ → 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153
+   - `CNAME` www → protechtus.github.io
+4. Back in Settings → Pages, tick **Enforce HTTPS** once the cert issues.
+
+`404.html` is picked up automatically. `_headers` is ignored by GitHub Pages (harmless).
+
+## Alternative — Cloudflare Pages (also free)
+Connect the repo, build command: *none*, output dir: `/`. `_headers` adds long-cache + security headers. Delete `CNAME` and `.nojekyll` if you like (ignored).
+
+## Any other server
+It's static files — copy the folder to any web root (nginx/Caddy). Serve `404.html` as the not-found page.
+
+## Also in the kit
+- `brand/social/github-social-preview-1280x640.png` → upload in **protechtus/sextant → Settings → Social preview**.
+- README banner snippet (dark/light):
+```html
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://usesextant.com/brand/social/readme-banner-dark-2560x640.png">
+  <img alt="Sextant" src="https://usesextant.com/brand/social/readme-banner-light-2560x640.png">
+</picture>
+```
