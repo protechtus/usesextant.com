@@ -29,7 +29,9 @@ py -3 --version
 git --version
 ```
 
-- Sextant needs **Python 3.11 or newer** and **git**. If Python is older or missing, **ASK**
+- Sextant needs **Python 3.11 or newer** and **git**. Check every interpreter that answered,
+  not just the first: on many machines `python` is an old 3.10 while `py -3` or `python3.12`
+  is current. Use the newest 3.11+ you found for every later step. If none qualifies, **ASK**
   the human how they want it installed (python.org, `uv python install 3.12`, the OS package
   manager). Do not install it yourself.
 - Note the OS and shell: Windows PowerShell, Windows Git Bash, macOS, Linux, or WSL. The
@@ -54,11 +56,18 @@ the short path and skips steps 1 to 3. Until then, install from the clone. Never
 
 ## 2. Create the virtual environment
 
-Windows (PowerShell or Git Bash):
+Windows PowerShell:
 
 ```
 py -3 -m venv .venv
 .venv\Scripts\python.exe -m pip install -U pip setuptools
+```
+
+Windows Git Bash (same layout, forward slashes):
+
+```
+py -3 -m venv .venv
+.venv/Scripts/python.exe -m pip install -U pip setuptools
 ```
 
 macOS / Linux / WSL:
@@ -79,7 +88,8 @@ python3 -m venv --without-pip .venv
 curl -sSLo get-pip.py https://bootstrap.pypa.io/get-pip.py
 .venv/bin/python get-pip.py
 ```
-or, if `uv` is installed, `uv venv .venv` and use `uv pip install` in step 3.
+or, if `uv` is installed, `uv venv --seed .venv` (the `--seed` flag installs pip so the
+`python -m pip` commands below keep working).
 
 ## 3. Install
 
@@ -155,10 +165,12 @@ placeholder path with the venv Python. **ASK** before editing that file; show th
 settings. The server name `sextant` must be unique per machine; a second install needs a
 different name.
 
-**Session-start priming for Claude Code** (optional, recommended): the snippets
-`deploy/session_start_hook.json` and `deploy/stop_hook.json` add hooks to
-`~/.claude/settings.json`. **ASK** before editing settings; if a `hooks` key exists, add
-the entries rather than replacing the key.
+**Session-start priming for Claude Code** (optional, recommended): hook snippets live in
+`deploy/`. Pick the pair for the platform: `session_start_hook.json` and `stop_hook.json`
+on Windows and Linux, `session_start_hook.macos.json` and `stop_hook.macos.json` on macOS.
+They add hooks to `~/.claude/settings.json`. **ASK** before editing settings, show the diff,
+and if a `hooks` key already exists add the entries rather than replacing the key. Hooks
+take effect in the next Claude Code session.
 
 ## 6. Prove it works (the round-trip)
 
@@ -207,8 +219,24 @@ them at `docs/GETTING-STARTED.md` for daily use and `docs/USAGE.md` for the tool
 
 ## Uninstall
 
+Run the report first; it lists exactly what exists and what still references the install:
+
 ```
-<venv-python> -m atlas_plus.uninstall_cmd --all --yes
+<venv-python> -m atlas_plus.uninstall_cmd
 ```
-removes the corpus and state after a report. Then `claude mcp remove sextant` and delete the
-clone. Nothing else was installed.
+
+Then, **ASK** before each of these, because the corpus is the human's notes:
+
+1. `<venv-python> -m atlas_plus.uninstall_cmd --all --yes --confirm-path <exact corpus path>`
+   removes the state dir and the corpus. The corpus path must be typed exactly (the report
+   prints it). A corpus containing a `.sextant-protect` marker refuses deletion until the
+   human removes the marker by hand. A state dir that overlaps the corpus, home, or workspace
+   root is refused outright.
+2. `claude mcp remove -s user sextant` (or the equivalent in the client they used), and remove
+   any Stop or SessionStart hook entries that point at the clone from `~/.claude/settings.json`.
+3. The session log the summarizer wrote (path shown in the report) is never deleted by the
+   tool; the human decides.
+4. `pip uninstall sextant-cp` inside the venv, or simply delete the clone and its `.venv`.
+
+Use the same `ATLAS_*` environment variables you used at install time, or the report will
+describe a different (probably empty) location.
