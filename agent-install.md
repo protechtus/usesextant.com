@@ -19,10 +19,13 @@ copy at usesextant.com is republished from it on every release.
 
 ## 0. Detect the environment
 
-Run and record:
+Run whichever of these exist and record the output (one per line; do not chain them with
+`||`, PowerShell rejects that):
 
 ```
-python --version || python3 --version || py -3 --version
+python --version
+python3 --version
+py -3 --version
 git --version
 ```
 
@@ -69,8 +72,14 @@ Verify: `.venv/bin/python --version` (or `.venv\Scripts\python.exe --version`) p
 
 Known failure: on Debian/Ubuntu, `venv` fails with an `ensurepip` error when the
 `python3-venv` package is missing. **ASK** before running
-`sudo apt-get install -y python3-venv`. If the human cannot use sudo, use
-`python3 -m venv --without-pip .venv` and bootstrap pip with `get-pip.py`, or `uv venv`.
+`sudo apt-get install -y python3-venv`. If the human cannot use sudo:
+
+```
+python3 -m venv --without-pip .venv
+curl -sSLo get-pip.py https://bootstrap.pypa.io/get-pip.py
+.venv/bin/python get-pip.py
+```
+or, if `uv` is installed, `uv venv .venv` and use `uv pip install` in step 3.
 
 ## 3. Install
 
@@ -88,18 +97,26 @@ Known failure: a dependency resolver conflict. Retry with the pinned set:
 
 ## 4. Initialise the memory corpus
 
+**ASK first:** by default this writes two folders outside the project, `~/.memory` (the
+markdown corpus the human owns) and `~/.atlas` (state). Ask where they want them. To keep
+everything inside the install folder instead, set the variables **before** running init and
+keep them set for every later command (and pass them to the MCP client in step 5):
+
+```
+ATLAS_MEMORY_ROOT=<install-dir>/memory
+ATLAS_STATE_DIR=<install-dir>/state
+```
+(`ATLAS_WORKSPACE_ROOT=<dir>` re-roots both at once as `<dir>/.memory` and `<dir>/.atlas`.)
+
+Then:
+
 ```
 <venv-python> -m atlas_plus.init_cmd
 ```
 
-This creates `~/.memory` (the markdown corpus the human owns) and `~/.atlas` (state).
-If the human wants them elsewhere, set `ATLAS_MEMORY_ROOT` and `ATLAS_STATE_DIR` **before**
-this step, and keep setting them for every later command. `ATLAS_WORKSPACE_ROOT` re-roots
-both at once.
-
-Verify: `<venv-python> -m atlas_plus.doctor.cli` runs and shows the corpus path. On a
-brand-new corpus the memory-quality rows can show red; that is expected for an empty corpus
-and is not an error.
+Verify: `<venv-python> -m atlas_plus.doctor.cli` runs and prints the corpus path near the
+top. On a fresh install the Services rows (Brain, MCP, Ollama) show **down**: nothing is
+running yet, which is expected and not an error.
 
 ## 5. Connect the MCP server to the human's AI client
 
@@ -118,9 +135,14 @@ claude mcp add -s user sextant -- "$PWD/.venv/bin/python" -m atlas_plus.mcp.memo
 ```
 Git Bash on Windows: use `"$(pwd -W)/.venv/Scripts/python.exe"` as the command.
 
-If the human set `ATLAS_MEMORY_ROOT`, pass it **after the server name**:
-`claude mcp add -s user sextant -e ATLAS_MEMORY_ROOT=/their/path -- <command>`. Putting
+If you set `ATLAS_MEMORY_ROOT`/`ATLAS_STATE_DIR` (or `ATLAS_WORKSPACE_ROOT`) in step 4, pass
+the same variables **after the server name**, one `-e` each:
+`claude mcp add -s user sextant -e ATLAS_WORKSPACE_ROOT=/their/path -- <command>`. Putting
 `-e` before the name fails on current Claude Code.
+
+WSL install, Windows Claude Code: the command must cross into WSL, so register
+`wsl -d <Distro> -- /home/<user>/sextant/.venv/bin/python -m atlas_plus.mcp.memory_server.server --stdio`
+(with the Linux path to the venv).
 
 Verify: `claude mcp list` shows `sextant ... Connected`.
 
@@ -140,24 +162,30 @@ the entries rather than replacing the key.
 
 ## 6. Prove it works (the round-trip)
 
-Through the connected client, or by driving the server directly, do all three:
+The shortest path, from the clone, with the same environment variables as step 4:
 
-1. Call `memory_health`. Expect `ok` and the corpus path.
-2. Call `memory_remember_tool` with scope `project:demo` and the text
-   "Sextant installed by an agent on <date>." Expect a path under `projects/`.
-3. Call `memory_search_tool` with query "installed by an agent". Expect the fact back with
-   a confidence band.
+```
+<venv-python> scripts/mcp_roundtrip.py --project demo
+```
 
-Scope grammar for step 2: `project:<name>`, `reference:<topic>`, `preference:<topic>`. A bare
+It starts the server over stdio, does the MCP handshake, and runs the three calls below,
+printing each result as JSON and ending with `ROUND-TRIP: OK`. Paste that output into your
+report.
+
+If the human prefers to see it through their connected client, do the same three calls there.
+Exact call shapes (parameter names matter):
+
+1. `memory_health` with no arguments. Expect `"status": "ok"`.
+2. `memory_remember_tool` with `scope="project:demo"` and
+   `fact="Sextant installed by an agent on <date>."`. Expect a result naming a file under
+   `projects/`.
+3. `memory_search_tool` with `query="Sextant installed by an agent"`. Expect the fact back
+   with a `confidence` band (high/medium/low/starved).
+
+Scope grammar for call 2: `project:<name>`, `reference:<topic>`, `preference:<topic>`. A bare
 `reference` is rejected.
 
-Without an MCP client at hand, the same check from the shell:
-
-```
-<venv-python> -m atlas_plus.mcp.memory_server.server --stdio
-```
-then send JSON-RPC `initialize`, `tools/list` (expect 30 tools), and the three calls above.
-Or use the CLI: `<venv-python> -m atlas_plus search "installed by an agent"`.
+The CLI can confirm the write too: `<venv-python> -m atlas_plus search "installed by an agent"`.
 
 ## 7. Report to the human
 
