@@ -1,0 +1,9 @@
+# Sextant
+
+> Self-hosted memory and orchestration layer for AI sessions. Apache-2.0.
+
+- Install with an agent: https://usesextant.com/agent-install.md
+- Repository: https://github.com/protechtus/sextant
+- Getting started: https://github.com/protechtus/sextant/blob/main/docs/GETTING-STARTED.md
+- Tool reference: https://github.com/protechtus/sextant/blob/main/docs/USAGE.md
+- Security policy: https://github.com/protechtus/sextant/blob/main/SECURITY.md
