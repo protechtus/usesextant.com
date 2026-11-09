@@ -3,10 +3,10 @@
 Zero build step, zero dependencies, zero trackers. Fonts are self-hosted (OFL).
 
 ## Before you ship
-1. **Newsletter:** in `index.html`, replace `YOUR_USERNAME` in the Buttondown form action.
+1. **Newsletter:** the signup is an interim mailto link (hello@protechtus.com). Restore the Buttondown form once the account exists; the original form markup is in git history (commit 487256d).
 2. Check the proof strip (tests / tools / dates) is still current.
 
-## Deploy — GitHub Pages (free, recommended)
+## Deploy — GitHub Pages (LIVE since 2026-11-09 at https://usesextant.com)
 1. Create repo `protechtus/usesextant.com` (or a `gh-pages` branch) and push the contents of this folder to its root.
 2. Repo → Settings → Pages → Source: *Deploy from a branch*, `main` / root.
 3. `CNAME` already contains `usesextant.com`. At your DNS provider add:
