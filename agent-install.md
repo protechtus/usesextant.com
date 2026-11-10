@@ -167,10 +167,20 @@ different name.
 
 **Session-start priming for Claude Code** (optional, recommended): hook snippets live in
 `deploy/`. Pick the pair for the platform: `session_start_hook.json` and `stop_hook.json`
-on Windows and Linux, `session_start_hook.macos.json` and `stop_hook.macos.json` on macOS.
-They add hooks to `~/.claude/settings.json`. **ASK** before editing settings, show the diff,
-and if a `hooks` key already exists add the entries rather than replacing the key. Hooks
-take effect in the next Claude Code session.
+on Windows (they call `.venv\Scripts\python.exe`), `session_start_hook.macos.json` and
+`stop_hook.macos.json` on macOS **and Linux** (they call `.venv/bin/python`; the file name
+is historical). They add hooks to `~/.claude/settings.json`. **ASK** before editing settings,
+show the diff, and if a `hooks` key already exists add the entries rather than replacing the
+key. Hooks take effect in the next Claude Code session.
+
+Hooks are separate processes: the `env` block of the MCP registration applies to the MCP
+server only, not to them. If you set `ATLAS_MEMORY_ROOT` / `ATLAS_STATE_DIR` /
+`ATLAS_PROJECTS_ROOT` in the registration rather than in the user's environment, the hook
+would read a different corpus. Either set the same variables user-wide (`setx` on Windows,
+the shell profile on POSIX) or put them on the hook command itself
+(`ATLAS_MEMORY_ROOT=/path python -m atlas_plus.hooks.session_start` on POSIX; a one-line
+`.cmd` wrapper on Windows). The round-trip in step 6 plus a session-start run from a
+project directory should show the same identity note from both.
 
 ## 6. Prove it works (the round-trip)
 
