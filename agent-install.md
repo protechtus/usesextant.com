@@ -227,9 +227,10 @@ Run the report first; it lists exactly what exists and what still references the
 
 Then, **ASK** before each of these, because the corpus is the human's notes:
 
-1. `<venv-python> -m atlas_plus.uninstall_cmd --all --yes --confirm-path <exact corpus path>`
-   removes the state dir and the corpus. The corpus path must be typed exactly (the report
-   prints it). A corpus containing a `.sextant-protect` marker refuses deletion until the
+1. `<venv-python> -m atlas_plus.uninstall_cmd --all --yes --confirm-path <corpus path> --confirm-state-path <state path>`
+   removes the state dir and the corpus. Both paths must be named (the report prints them);
+   the state dir is not a cache: it holds captured transcripts, the task database, the
+   intake ledger, sync devices and research reports. A corpus containing a `.sextant-protect` marker refuses deletion until the
    human removes the marker by hand. A state dir that overlaps the corpus, home, or workspace
    root is refused outright.
 2. `claude mcp remove -s user sextant` (or the equivalent in the client they used), and remove
