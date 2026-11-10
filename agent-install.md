@@ -50,7 +50,7 @@ cd sextant
 
 Verify: `git log --oneline -1` prints a commit and `pyproject.toml` exists.
 
-(When the package is on PyPI, `pipx install sextant-cp` or `uv tool install sextant-cp` is
+(When the package is on PyPI, `pipx install sextant-ai` or `uv tool install sextant-ai` is
 the short path and skips steps 1 to 3. Until then, install from the clone. Never run
 `pip install sextant`: that is an unrelated package.)
 
@@ -99,7 +99,7 @@ Use the venv's Python explicitly (do not rely on `activate`; it is shell-specifi
 <venv-python> -m pip install -e ".[dev,telegram,summarizer]"
 ```
 
-Verify: `<venv-python> -m pip show sextant-cp` prints the version, and
+Verify: `<venv-python> -m pip show sextant-ai` prints the version, and
 `<venv-python> -m atlas_plus --version` prints it too.
 
 Known failure: a dependency resolver conflict. Retry with the pinned set:
@@ -247,7 +247,7 @@ Then, **ASK** before each of these, because the corpus is the human's notes:
    any Stop or SessionStart hook entries that point at the clone from `~/.claude/settings.json`.
 3. The session log the summarizer wrote (path shown in the report) is never deleted by the
    tool; the human decides.
-4. `pip uninstall sextant-cp` inside the venv, or simply delete the clone and its `.venv`.
+4. `pip uninstall sextant-ai` inside the venv, or simply delete the clone and its `.venv`.
 
 Use the same `ATLAS_*` environment variables you used at install time, or the report will
 describe a different (probably empty) location.
