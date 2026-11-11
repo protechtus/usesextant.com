@@ -4,7 +4,14 @@ This page is written for an AI coding agent (Claude Code, Codex, Cursor, Aider, 
 agent with a shell) acting on behalf of a human. If you are the agent: follow the steps in
 order, run the verify command after each one, and stop to ask the human at every point
 marked **ASK**. Do not skip verifies. Do not install system packages or change files outside
-the install directory without asking. The whole run takes 5 to 10 minutes.
+the install directory without asking. Do not set `ATLAS_AUTONOMOUS`, do not edit the human's
+hooks or settings files without an explicit yes, and never `pip install sextant` (an unrelated
+package). The whole run takes 5 to 10 minutes.
+
+Already installed as a package (`pipx install sextant-ai`, `uv tool install sextant-ai`, or pip
+from PyPI), so there is no clone? Steps 1 to 3 are done. From step 4 on, the installed commands
+are `sextant-init`, `sextant-doctor`, `sextant setup` and `sextant verify`; wherever a step says
+`<venv-python> -m atlas_plus.<x>`, the `sextant <x>` form is the same thing.
 
 If you are the human: paste this into your agent:
 
@@ -31,7 +38,10 @@ git --version
 
 - Sextant needs **Python 3.11 or newer** and **git**. Check every interpreter that answered,
   not just the first: on many machines `python` is an old 3.10 while `py -3` or `python3.12`
-  is current. Use the newest 3.11+ you found for every later step. If none qualifies, **ASK**
+  is current. On Windows, `py --list` shows every registered interpreter (`py -3` picks the
+  newest; `py -3.11` picks one), and a `python3` that answers from the Microsoft Store is a
+  stub or an old install, not the one to use. Use the newest 3.11+ you found for every later
+  step. If none qualifies, **ASK**
   the human how they want it installed (python.org, `uv python install 3.12`, the OS package
   manager). Do not install it yourself.
 - Note the OS and shell: Windows PowerShell, Windows Git Bash, macOS, Linux, or WSL. The
@@ -77,16 +87,19 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -U pip setuptools
 ```
 
-Verify: `.venv/bin/python --version` (or `.venv\Scripts\python.exe --version`) prints 3.11+.
+Verify: `.venv\Scripts\python.exe --version` on Windows, `.venv/bin/python --version`
+elsewhere, prints 3.11+.
 
 Known failure: on Debian/Ubuntu, `venv` fails with an `ensurepip` error when the
 `python3-venv` package is missing. **ASK** before running
-`sudo apt-get install -y python3-venv`. If the human cannot use sudo:
+`sudo apt-get install -y python3-venv`. If the human cannot use sudo (remove the half-built
+`.venv` first, and delete `get-pip.py` afterwards so the clone stays clean):
 
 ```
+rm -rf .venv
 python3 -m venv --without-pip .venv
 curl -sSLo get-pip.py https://bootstrap.pypa.io/get-pip.py
-.venv/bin/python get-pip.py
+.venv/bin/python get-pip.py && rm get-pip.py
 ```
 or, if `uv` is installed, `uv venv --seed .venv` (the `--seed` flag installs pip so the
 `python -m pip` commands below keep working).
@@ -116,7 +129,19 @@ keep them set for every later command (and pass them to the MCP client in step 5
 ATLAS_MEMORY_ROOT=<install-dir>/memory
 ATLAS_STATE_DIR=<install-dir>/state
 ```
-(`ATLAS_WORKSPACE_ROOT=<dir>` re-roots both at once as `<dir>/.memory` and `<dir>/.atlas`.)
+
+Rules that are easy to miss:
+
+- `ATLAS_WORKSPACE_ROOT=<dir>` is the one-variable form: it re-roots the corpus to
+  `<dir>/.memory`, state to `<dir>/.atlas` and the projects root to `<dir>/projects`. A
+  specific variable (`ATLAS_MEMORY_ROOT`, `ATLAS_STATE_DIR`, `ATLAS_PROJECTS_ROOT`) always wins
+  over the workspace root when both are set.
+- Inside a clone, `memory/`, `state/` and `.memory/` at the top level are git-ignored, so the
+  human's notes never land in a commit. Do not pick any other name inside the clone.
+- If you run one shell per command (most agent harnesses do), write the variables to a file
+  once (`env.sh` with `export` lines, or `env.ps1` with `$env:` lines) and source or
+  dot-source it at the start of every later command. The verify in step 6 fails against the
+  wrong corpus otherwise.
 
 Then:
 
@@ -124,54 +149,68 @@ Then:
 <venv-python> -m atlas_plus.init_cmd
 ```
 
-Verify: `<venv-python> -m atlas_plus.doctor.cli` runs and prints the corpus path near the
-top. On a fresh install the Services rows (Brain, MCP, Ollama) show **down**: nothing is
-running yet, which is expected and not an error.
+Verify: `<venv-python> -m atlas_plus.doctor.cli` runs; its "Memory corpus" section names the
+path you chose. The doctor is a report and creates nothing, so it is safe before init too. On
+a machine with nothing else running, the Services rows (Brain, MCP, Web, Sync, Ollama) show
+**down**: nothing is running yet, which is expected and not an error. On a machine that
+already runs another Sextant or an Ollama, those rows show **up** and the report says so in
+its first line; that is not this install.
 
 ## 5. Connect the MCP server to the human's AI client
 
-The server runs over stdio and needs no token in this mode. Register it with the venv's
-Python so it works regardless of PATH.
+The server runs over stdio and needs no token in this mode. Let the install print its own
+registration, with the step 4 variables still set:
 
-**Claude Code** (run from inside the clone):
-
-Windows:
 ```
-claude mcp add -s user sextant -- "$PWD\.venv\Scripts\python.exe" -m atlas_plus.mcp.memory_server.server --stdio
+<venv-python> -m atlas_plus setup
 ```
-macOS / Linux:
-```
-claude mcp add -s user sextant -- "$PWD/.venv/bin/python" -m atlas_plus.mcp.memory_server.server --stdio
-```
-Git Bash on Windows: use `"$(pwd -W)/.venv/Scripts/python.exe"` as the command.
 
-If you set `ATLAS_MEMORY_ROOT`/`ATLAS_STATE_DIR` (or `ATLAS_WORKSPACE_ROOT`) in step 4, pass
-the same variables **after the server name**, one `-e` each:
-`claude mcp add -s user sextant -e ATLAS_WORKSPACE_ROOT=/their/path -- <command>`. Putting
-`-e` before the name fails on current Claude Code.
+It prints, filled in for this interpreter and this environment: the one-line Claude Code
+command (paths quoted, every `ATLAS_*` path variable you set baked in as `-e`), the JSON
+`mcpServers` entry for Claude Desktop, Cursor and other clients, and the optional hook
+entries. `--json` gives the same as data; `--client claude-code` prints only the command.
+The `-e` variables matter: a client launched from the Start menu or the Dock has no shell
+and the server would otherwise serve `~/.memory`.
 
-WSL install, Windows Claude Code: the command must cross into WSL, so register
-`wsl -d <Distro> -- /home/<user>/sextant/.venv/bin/python -m atlas_plus.mcp.memory_server.server --stdio`
-(with the Linux path to the venv).
+**Claude Code**: run the printed `claude mcp add -s user sextant ...` line as-is (it does
+not depend on the current directory). Writing it by hand instead: the interpreter is the
+venv's Python, quoted (a path with a space breaks without quotes), and each variable goes
+**after the server name** as `-e "NAME=value"`, quoted the same way; `-e` before the name
+fails on current Claude Code. Windows PowerShell: `"$PWD\.venv\Scripts\python.exe"`.
+Git Bash: `"$(pwd -W)/.venv/Scripts/python.exe"` (the real `C:/...` path; `$PWD` there is
+`/c/...` and does not work outside Git Bash). macOS / Linux: `"$PWD/.venv/bin/python"`.
 
-Verify: `claude mcp list` shows `sextant ... Connected`.
+**WSL install, Windows Claude Code**: run `setup` inside WSL; besides the Linux command it
+prints the Windows-side form, which crosses the boundary with
+`-- wsl -d <Distro> -- /home/<user>/<install>/.venv/bin/python -m atlas_plus.mcp.memory_server.server --stdio`
+and carries `-e "WSLENV=ATLAS_MEMORY_ROOT:ATLAS_STATE_DIR"` (or whichever variables you set).
+Without `WSLENV`, variables set on the Windows side never reach the Linux process and the
+server silently serves `~/.memory` inside WSL while still answering `ok`. Run the printed
+command in PowerShell on the Windows side; `claude` is usually not on the WSL PATH.
 
-**Claude Desktop**: merge `deploy/claude_desktop_config.snippet.json` into the client's
+Verify: `claude mcp list` shows `sextant ... Connected` (on the side where Claude Code
+runs). Then tell the human to restart Claude Code; a running session does not see a new server.
+
+**Claude Desktop**: merge the `mcpServers` block that `setup` printed into the client's
 config file (`%APPDATA%\Claude\claude_desktop_config.json` on Windows,
-`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS), replacing the
-placeholder path with the venv Python. **ASK** before editing that file; show the diff.
+`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS), keeping any
+servers already there. The same block, with placeholders instead of real paths, is
+`deploy/claude_desktop_config.snippet.json` in a clone; on Windows its interpreter path is
+`<ATLAS_PLUS_DIR>/.venv/Scripts/python.exe`, not the `.venv/bin/python` shown. **ASK** before
+editing that file; show the diff.
 
 **Cursor and other MCP clients**: same command and arguments as above, in the client's MCP
 settings. The server name `sextant` must be unique per machine; a second install needs a
 different name.
 
-**Session-start priming for Claude Code** (optional, recommended): hook snippets live in
-`deploy/`. Pick the pair for the platform: `session_start_hook.json` and `stop_hook.json`
-on Windows (they call `.venv\Scripts\python.exe`), `session_start_hook.macos.json` and
-`stop_hook.macos.json` on macOS **and Linux** (they call `.venv/bin/python`; the file name
-is historical). They add hooks to `~/.claude/settings.json`. **ASK** before editing settings,
-show the diff, and if a `hooks` key already exists add the entries rather than replacing the
-key. Hooks take effect in the next Claude Code session.
+**Session-start priming for Claude Code** (optional; only after the human says yes):
+`<venv-python> -m atlas_plus setup --client hooks` prints the `hooks` block with this
+interpreter already in place (in a clone the same block ships as placeholders in
+`deploy/session_start_hook.json` and `deploy/stop_hook.json` for Windows, the `.macos.json`
+pair for macOS **and** Linux). It goes into `~/.claude/settings.json`. **ASK** before editing
+settings, show the diff, and if a `hooks` key already exists add the entries rather than
+replacing the key. Hooks take effect in the next Claude Code session. The Stop hook writes
+nothing until the human sets `ATLAS_AUTONOMOUS=on`.
 
 Hooks are separate processes: the `env` block of the MCP registration applies to the MCP
 server only, not to them. If you set `ATLAS_MEMORY_ROOT` / `ATLAS_STATE_DIR` /
@@ -184,15 +223,20 @@ project directory should show the same identity note from both.
 
 ## 6. Prove it works (the round-trip)
 
-The shortest path, from the clone, with the same environment variables as step 4:
+The shortest path, with the same environment variables as step 4 (every kind of install has
+this command; `sextant verify` is the same thing):
 
 ```
-<venv-python> scripts/mcp_roundtrip.py --project demo
+<venv-python> -m atlas_plus verify --project demo
 ```
 
 It starts the server over stdio, does the MCP handshake, and runs the three calls below,
 printing each result as JSON and ending with `ROUND-TRIP: OK`. Paste that output into your
-report.
+report. Check the `memory_root` in the `memory_health` line: it must be the corpus from
+step 4, not a leftover `~/.memory`. (In a clone, `scripts/mcp_roundtrip.py` runs the same
+check. From Windows against a WSL install, add
+`--command "wsl -d <Distro> -- /home/<user>/<install>/.venv/bin/python"` to test the exact
+launcher the registration uses.)
 
 If the human prefers to see it through their connected client, do the same three calls there.
 Exact call shapes (parameter names matter):
@@ -212,8 +256,10 @@ The CLI can confirm the write too: `<venv-python> -m atlas_plus search "installe
 ## 7. Report to the human
 
 Tell them, in this order: where it is installed, where the corpus lives, which client is
-connected, what the round-trip returned, and anything you had to ask or work around. Point
-them at `docs/GETTING-STARTED.md` for daily use and `docs/USAGE.md` for the tool reference.
+connected, what the round-trip returned, and anything you had to ask or work around. Tell
+them to restart their client so the new server appears. Point them at
+`docs/GETTING-STARTED.md` for daily use and `docs/USAGE.md` for the tool reference (in a
+package install those live at https://github.com/protechtus/sextant/tree/main/docs).
 
 ## Troubleshooting (seen in real installs)
 
@@ -224,6 +270,8 @@ them at `docs/GETTING-STARTED.md` for daily use and `docs/USAGE.md` for the tool
 | Session start says "not in a known project directory" | the hook primes a project note only when the working directory is a project under `ATLAS_PROJECTS_ROOT` (default `~/projects`) | set `ATLAS_PROJECTS_ROOT`, or use `atlas-prime <task>` for task context |
 | HTTP server refuses to start | `sextant-mcp` over HTTP needs `ATLAS_MCP_TOKEN`; stdio mode does not | use stdio for clients; set the token only for HTTP |
 | Corpus "vanished" | `ATLAS_WORKSPACE_ROOT` was set after init | set it before init, or unset it |
+| `memory_health` says `ok` but its `memory_root` is `~/.memory`, not the chosen corpus | the `-e` variables never reached the server (GUI-launched client, or Windows to WSL without `WSLENV`) | re-register with the command `setup` prints |
+| `=== Atlas Doctor ===` instead of `Sextant Doctor` | an old build invoked as `python -m atlas_plus.doctor.cli` | cosmetic; `sextant-doctor` is the same program |
 | `venv` fails with ensurepip error (Debian/Ubuntu) | `python3-venv` not installed | ask, then `sudo apt-get install -y python3-venv`, or `--without-pip` |
 | Test suite: one cookie test fails on a fresh resolve | fixed in current main; older clones pin `-c constraints.txt` | pull, or install with the constraints file |
 
@@ -245,8 +293,8 @@ Then, **ASK** before each of these, because the corpus is the human's notes:
    root is refused outright.
 2. `claude mcp remove -s user sextant` (or the equivalent in the client they used), and remove
    any Stop or SessionStart hook entries that point at the clone from `~/.claude/settings.json`.
-3. The session log the summarizer wrote (path shown in the report) is never deleted by the
-   tool; the human decides.
+3. The session log the summarizer wrote (its path is in the report when one exists) is
+   never deleted by the tool; the human decides.
 4. `pip uninstall sextant-ai` inside the venv, or simply delete the clone and its `.venv`.
 
 Use the same `ATLAS_*` environment variables you used at install time, or the report will
