@@ -4,7 +4,10 @@ Zero build step, zero dependencies, zero trackers. Fonts are self-hosted (OFL).
 
 ## Before you ship
 1. **Newsletter:** the signup is an interim mailto link (hello@protechtus.com). Restore the Buttondown form once the account exists; the original form markup is in git history (commit 487256d).
-2. Check the proof strip (tests / tools / dates) is still current.
+2. The proof strip (tests, OS count, tool count, Python floor) is generated: the values sit in
+   `data-fact="..."` spans that `C:\Tools\protechtus\facts\sync.py` refreshes from the Sextant
+   repo and CI, commits and pushes here hourly when they move (task `Facts-Sync`). Never retype a
+   value inside a marker; a re-export that drops the spans fails the sync loudly.
 
 ## Deploy — GitHub Pages (LIVE since 2026-11-09 at https://usesextant.com)
 1. Create repo `protechtus/usesextant.com` (or a `gh-pages` branch) and push the contents of this folder to its root.
