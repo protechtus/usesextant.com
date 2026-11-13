@@ -91,11 +91,11 @@
 <div class="panel" role="tabpanel" id="p-pip" aria-labelledby="t-pip"><button class="copy" type="button">copy</button><pre><span class="t-mut" aria-hidden="true">$ </span><span class="cmd">git clone https://github.com/protechtus/sextant.git &amp;&amp; cd sextant</span>
 <span class="t-mut" aria-hidden="true">$ </span><span class="cmd">python -m venv .venv &amp;&amp; . .venv/bin/activate</span>   <span class="t-mut"># Windows: .venv\Scripts\activate</span>
 <span class="t-mut" aria-hidden="true">$ </span><span class="cmd">python -m pip install -e &quot;.[dev]&quot;</span>
-<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">sextant-init &amp;&amp; sextant-doctor</span></pre></div>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">sextant init &amp;&amp; sextant setup &amp;&amp; sextant verify</span>   <span class="t-mut"># corpus, client registration, proven round-trip</span></pre></div>
 <div class="panel" role="tabpanel" id="p-docker" aria-labelledby="t-docker" hidden><button class="copy" type="button">copy</button><pre><span class="t-mut" aria-hidden="true">$ </span><span class="cmd">git clone https://github.com/protechtus/sextant.git &amp;&amp; cd sextant</span>
 <span class="t-mut" aria-hidden="true">$ </span><span class="cmd">python3 -c &quot;import secrets; print(f'ATLAS_MCP_TOKEN={secrets.token_urlsafe(32)}'); print(f'ATLAS_WEB_API_KEY={secrets.token_urlsafe(32)}')&quot; &gt; .env</span>   <span class="t-mut"># keys the stack refuses to start without</span>
 <span class="t-mut" aria-hidden="true">$ </span><span class="cmd">docker compose up -d mcp web</span>
-<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">docker compose run --rm mcp sextant-init</span></pre></div>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">docker compose run --rm mcp sextant-init</span>   <span class="t-mut"># then point your client at the HTTP server (docs/HOWTO-docker.md)</span></pre></div>
 <p class="t-mut" style="margin-top:12px;font-size:13px">Using an AI agent? Tell it: <em>"Read https://usesextant.com/agent-install.md and follow it."</em> The runbook has verify steps and asks before anything needs admin rights.</p>
 </div>
 </div></section>
@@ -109,7 +109,7 @@
 <div><h2 id="h-signup">Follow the voyage</h2><p>Occasional notes on self-hosted AI memory — releases and what broke. No marketing.</p></div>
 <!-- Newsletter: Buttondown form goes here once the account exists; interim contact link -->
 <div class="row"><a class="btn" href="mailto:hello@protechtus.com?subject=Sextant%20updates" style="padding:12px 20px;font-size:14px">Email hello@protechtus.com for release notes</a></div>
-<small>or just <a href="https://github.com/protechtus/sextant/releases">watch releases on GitHub</a></small>
+<small>pre-release: v0.1.0 and the PyPI package follow the public launch; or just <a href="https://github.com/protechtus/sextant/releases">watch releases on GitHub</a></small>
 </div></section>
 </main>
 <footer><div class="wrap"><div class="l"><svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true" style="color:var(--muted)"><path d="M16 2 L17.2 4.8 L20 6 L17.2 7.2 L16 10 L14.8 7.2 L12 6 L14.8 4.8 Z" fill="var(--brass)"/><path d="M16 12 L6 25 M16 12 L26 25 M16 12 L16 29.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 25 A13 13 0 0 1 26 25" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg><span>built by <a href="https://protechtus.com">Protechtus LLC</a> · Apache-2.0</span></div><div class="r"><a href="https://github.com/protechtus/sextant">repo</a><a href="https://github.com/protechtus/sextant/tree/main/docs">docs</a><a href="https://github.com/protechtus/sextant/releases">releases</a><span>no trackers on this site</span></div></div></footer>
