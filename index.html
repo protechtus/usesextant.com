@@ -88,10 +88,14 @@
 <button class="tab" role="tab" id="t-pip" aria-controls="p-pip" aria-selected="true" type="button">pip</button>
 <button class="tab" role="tab" id="t-docker" aria-controls="p-docker" aria-selected="false" tabindex="-1" type="button">docker</button>
 </div>
-<div class="panel" role="tabpanel" id="p-pip" aria-labelledby="t-pip"><button class="copy" type="button">copy</button><pre><span class="t-mut" aria-hidden="true">$ </span><span class="cmd">git clone https://github.com/protechtus/sextant.git &amp;&amp; cd sextant</span>
-<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">python -m venv .venv &amp;&amp; . .venv/bin/activate</span>   <span class="t-mut"># Windows: .venv\Scripts\activate</span>
+<div class="panel" role="tabpanel" id="p-pip" aria-labelledby="t-pip"><button class="copy" type="button">copy</button><pre><span class="t-mut" aria-hidden="true">$ </span><span class="cmd">git clone https://github.com/protechtus/sextant.git</span>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">cd sextant</span>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">python -m venv .venv</span>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">. .venv/bin/activate</span>   <span class="t-mut"># Windows: .venv\Scripts\activate</span>
 <span class="t-mut" aria-hidden="true">$ </span><span class="cmd">python -m pip install -e &quot;.[dev]&quot;</span>
-<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">sextant init &amp;&amp; sextant setup &amp;&amp; sextant verify</span>   <span class="t-mut"># corpus, client registration, proven round-trip</span></pre></div>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">sextant init</span>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">sextant setup</span>   <span class="t-mut"># prints the registration line for your client: run it</span>
+<span class="t-mut" aria-hidden="true">$ </span><span class="cmd">sextant verify</span>   <span class="t-mut"># proves the round-trip</span></pre></div>
 <div class="panel" role="tabpanel" id="p-docker" aria-labelledby="t-docker" hidden><button class="copy" type="button">copy</button><pre><span class="t-mut" aria-hidden="true">$ </span><span class="cmd">git clone https://github.com/protechtus/sextant.git &amp;&amp; cd sextant</span>
 <span class="t-mut" aria-hidden="true">$ </span><span class="cmd">python3 -c &quot;import secrets; print(f'ATLAS_MCP_TOKEN={secrets.token_urlsafe(32)}'); print(f'ATLAS_WEB_API_KEY={secrets.token_urlsafe(32)}')&quot; &gt; .env</span>   <span class="t-mut"># keys the stack refuses to start without</span>
 <span class="t-mut" aria-hidden="true">$ </span><span class="cmd">docker compose up -d mcp web</span>
