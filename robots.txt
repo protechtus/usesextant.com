@@ -1,3 +1,20 @@
 User-agent: *
 Allow: /
+# AI crawlers are welcome on the public pages and the Markdown mirror (llms.txt). Same policy on
+# protechtus.com, pittsjay.com and usesextant.com; see C:/Tools/protechtus/seo/README.md.
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: anthropic-ai
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+User-agent: CCBot
+Allow: /
+
 Sitemap: https://usesextant.com/sitemap.xml
