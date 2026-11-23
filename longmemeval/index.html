@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>I benchmarked my own memory tool. The first result was 16%. | Sextant</title>
+<meta name="description" content="Sextant measured on LongMemEval against pasting in the whole history: two defects found, two fixes, held-out results, and where it still loses.">
+<meta name="theme-color" content="#0A0F1C">
+<script>(function(){var t;try{t=localStorage.getItem('sextant-theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t})()</script>
+<link rel="preload" href="../assets/fonts/source-sans-3-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/source-sans-3-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" href="../brand/favicon/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../brand/favicon/apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="canonical" href="https://usesextant.com/longmemeval/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Sextant">
+<meta property="og:title" content="I benchmarked my own memory tool. The first result was 16%.">
+<meta property="og:description" content="Sextant measured on LongMemEval against pasting in the whole history: two defects found, two fixes, held-out results, and where it still loses.">
+<meta property="og:url" content="https://usesextant.com/longmemeval/">
+<meta property="og:image" content="https://usesextant.com/brand/social/og-image-1200x630.png">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"I benchmarked my own memory tool. The first result was 16%.","datePublished":"2026-11-24","author":{"@type":"Person","@id":"https://pittsjay.com/#person","name":"Jay Pitts","url":"https://pittsjay.com/"},"publisher":{"@type":"Organization","@id":"https://protechtus.com/#org","name":"Protechtus LLC"},"mainEntityOfPage":"https://usesextant.com/longmemeval/","about":"LongMemEval benchmark results for Sextant"}</script>
+<style>
+.article{max-width:720px;margin:0 auto;padding:clamp(40px,7vw,72px) var(--pad) 80px}
+.article h1{font-size:clamp(30px,4.2vw,42px);margin:14px 0 14px}
+.article .byline{font:12.5px/1.7 var(--mono);color:var(--muted);margin:0 0 36px;padding-bottom:20px;border-bottom:1px solid var(--hair)}
+.article h2{font-size:22px;margin:44px 0 12px}
+.article p{margin:0 0 18px;font-size:17.5px;line-height:1.68;text-wrap:pretty}
+.article p.one{font-size:20px;font-weight:600}
+.article .tw{overflow-x:auto;margin:8px 0 26px;border:1px solid var(--hair);background:var(--panel)}
+.article table{border-collapse:collapse;width:100%;font-size:15px;min-width:460px}
+.article th,.article td{padding:11px 16px;text-align:right;border-bottom:1px solid var(--hair);font-variant-numeric:tabular-nums}
+.article th:first-child,.article td:first-child{text-align:left}
+.article th{font:500 12px var(--mono);letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.article tr:last-child td{border-bottom:0}
+.article td.hi{color:var(--brass);font-weight:600}
+.bars{margin:8px 0 28px;border:1px solid var(--hair);background:var(--panel);padding:20px 22px 14px}
+.bars .row{display:grid;grid-template-columns:minmax(120px,210px) 1fr 54px;gap:12px;align-items:center;margin-bottom:10px;font-size:14.5px}
+.bars .track{height:14px;background:var(--grid)}
+.bars .fill{height:100%;background:var(--muted)}
+.bars .fill.s{background:var(--brass)}
+.bars .v{font:13px var(--mono);text-align:right}
+.bars .cap{font:12px/1.6 var(--mono);color:var(--muted);margin:10px 0 0}
+.article .made{border-left:2px solid var(--line);padding:2px 0 2px 20px;margin:26px 0}
+.article .made p{font-size:16.5px;color:var(--muted)}
+.article .foot{font:12.5px/1.8 var(--mono);color:var(--muted);border-top:1px solid var(--hair);padding-top:18px;margin-top:40px}
+@media (max-width:520px){.bars .row{grid-template-columns:1fr 54px}.bars .row span:first-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="top" aria-label="Primary"><div class="wrap">
+<a class="brand" href="../" aria-label="Sextant home"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 L17.2 4.8 L20 6 L17.2 7.2 L16 10 L14.8 7.2 L12 6 L14.8 4.8 Z" fill="var(--brass)"/><path d="M16 12 L6 25 M16 12 L26 25 M16 12 L16 29.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 25 A13 13 0 0 1 26 25" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg><span>sextant</span></a>
+<div class="nav-links"><a href="../#features">Features</a><a href="../#quickstart">Quickstart</a><a href="https://github.com/protechtus/sextant/tree/main/docs">Docs</a><button class="ghost" id="theme" type="button">☾ dark</button><a class="btn sm" href="https://github.com/protechtus/sextant"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.640-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.070-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg> View on GitHub</a></div>
+</div></nav>
+<main id="main">
+
+<article class="article">
+<div class="kicker">Measured</div>
+<h1>I benchmarked my own memory tool. The first result was 16%.</h1>
+<p class="byline">Jay Pitts, Protechtus. 2026-11-24. Sextant on LongMemEval: 500 questions, two reader models, every loss kept in.</p>
+
+<p>Sextant is a memory layer for AI agents. It keeps what you and your assistant have worked out in plain markdown files on your own machine, and lets the assistant look things up instead of starting from zero every session. I built it, I use it every day, and until this month I had never measured it against anything but my own impression that it worked.</p>
+<p>So I measured it. LongMemEval is a public benchmark from a 2025 research paper: 500 questions, each about a long chat history, where the answer is buried somewhere in roughly fifty past conversations. I ran Sextant against it, and I ran the comparison I most wanted to see and rarely do: skip the memory tool entirely and paste the whole history into the model.</p>
+<p class="one">The first number was 16%.</p>
+
+<h2>What was broken</h2>
+<p>Before spending anything on models I ran the search step by itself, which is free. For 406 of the 470 answerable questions, Sextant returned nothing at all.</p>
+<p>The cause was almost embarrassing. Its keyword search required every word of the query to appear in a single note. An agent that writes short keyword queries never trips on that. A person who types a question as a sentence trips on it every time. "What was the first issue I had with my new car after its first service?" matched no note, because no note contains all of those words.</p>
+<p>I had shipped that. It had been public for a week.</p>
+<p>The fix is small: when no note holds every word, rank notes by the words they share, mark those matches as loose, and keep the tool telling the agent to be careful with them. With that change the right conversation shows up in the top five results for 96% of questions, up from 13%, with no AI model involved in the search at all.</p>
+
+<h2>The second thing</h2>
+<p>With search working, the agent scored about 90%. The whole history scored higher. I wanted to know what was in the gap, so I sorted every wrong answer by how far the evidence got.</p>
+<p>On one model, when the agent had opened every note that held the evidence, it was right 131 times out of 133. Fifteen of its nineteen misses were the same mistake: it answered from the little preview snippet in the search results, with the note it needed sitting right there, unopened.</p>
+<p>Telling it to open more notes barely helped. Changing the tool did: a search can now return its top three notes in full, so finding and reading are one step.</p>
+
+<h2>Checking myself</h2>
+<p>Here is where it would have been easy to fool myself. If you adjust a tool while watching a set of questions, it gets better at those questions. So before the second fix I split the 500 in half, tried things on one half, wrote down what I was going to run, and only then ran it on the half I had not touched.</p>
+<p>On those 251 questions:</p>
+<div class="tw"><table>
+<thead><tr><th>What the model was given</th><th>Smaller model</th><th>Larger model</th></tr></thead>
+<tbody>
+<tr><td>Sextant as I had shipped it</td><td>16%</td><td>17%</td></tr>
+<tr><td>Sextant, both fixes, agent searching</td><td class="hi">93.6%</td><td class="hi">93.6%</td></tr>
+<tr><td>The entire history pasted in</td><td>93.2%</td><td>95.6%</td></tr>
+</tbody></table></div>
+<div class="bars" role="img" aria-label="Larger model, 251 held-out questions: Sextant as shipped 17 percent, Sextant with both fixes 93.6 percent, whole history 95.6 percent">
+<div class="row"><span>Sextant as shipped</span><div class="track"><div class="fill" style="width:17%"></div></div><span class="v">17%</span></div>
+<div class="row"><span>Sextant, both fixes</span><div class="track"><div class="fill s" style="width:93.6%"></div></div><span class="v">93.6%</span></div>
+<div class="row"><span>Whole history pasted in</span><div class="track"><div class="fill" style="width:95.6%"></div></div><span class="v">95.6%</span></div>
+<p class="cap">Larger model (Claude Sonnet 5.5), 251 held-out questions, share answered correctly.</p>
+</div>
+<p>On the smaller model Sextant is level with reading everything. On the larger one it is two points behind, which is inside what a sample this size can tell apart from luck. It gets there reading 16 to 40% of the text. On the larger model that is about five and a half cents a question instead of thirty-four.</p>
+<p>One caution I owe you. The smaller model scored four points lower on the half I tuned on than on the half I held out. That is noise, and it cuts both ways, so the fair figure for it is both halves together: 91.6%, which is exactly what the whole history scores over the same 500.</p>
+
+<h2>The case memory exists for</h2>
+<p>That benchmark fits inside a model's window. The real argument for memory is the history that does not. A larger version of the same test buries each answer in about 476 conversations, around 1.75 million tokens. You cannot paste that into any of these models. Looking it up is the only option.</p>
+<p>There Sextant scores between 81 and 86%, reading two to five percent of the history.</p>
+<div class="tw"><table>
+<thead><tr><th>476 conversations per question</th><th>Smaller model</th><th>Larger model</th></tr></thead>
+<tbody>
+<tr><td>Keyword search</td><td>84.1%</td><td>85.3%</td></tr>
+<tr><td>Keyword plus semantic search</td><td>81.3%</td><td>86.1%</td></tr>
+<tr><td>The entire history pasted in</td><td colspan="2" style="text-align:center;color:var(--muted)">does not fit</td></tr>
+</tbody></table></div>
+<p>I expected the semantic search option to help at that size. I ran it both ways. It did not help. Most of what is still wrong is one kind of question, where the answer is spread across several conversations and one of them never surfaces.</p>
+<p>I had a theory about why. Sextant's semantic index only read the opening of a long note, and a conversation is a long note. So I rebuilt the index to read notes in overlapping passages, which is what most people would call the obvious fix, and tested it on search alone before paying for anything. The right conversation came up first more often. The hard cases did not move at all: three questions gained, three lost, and every search took twice as long. I did not ship it. It is on a branch with the numbers in the commit message, and the theory is filed under wrong.</p>
+
+<h2>Two checks before I published</h2>
+<p>Every number so far is a single run, so I ran four of them again with everything frozen.</p>
+<div class="tw"><table>
+<thead><tr><th>Same run, twice</th><th>First</th><th>Second</th></tr></thead>
+<tbody>
+<tr><td>Larger model, 50 conversations</td><td>93.6%</td><td>93.6%</td></tr>
+<tr><td>Smaller model, 50 conversations</td><td>93.6%</td><td>94.8%</td></tr>
+<tr><td>Larger model, 476 conversations</td><td>85.3%</td><td>86.5%</td></tr>
+<tr><td>Smaller model, 476 conversations</td><td>84.1%</td><td>84.9%</td></tr>
+</tbody></table></div>
+<p>The scores came back within about a point. Somewhere between four and nine percent of individual answers flipped each time. That is the ruler for everything on this page. A gap of a point or two is what the same thing does when you run it twice.</p>
+<p>Then I handed the code to an independent automated review. It found ten problems, and all ten were real. One had inflated a cost figure for the smaller model. One was a flaw in my first fix: when memory had nothing on a question, Sextant could hand back a note that shared a single common word with it and call that a weak match, where the right answer is "I have nothing on that." Both are fixed, and I re-ran every search afterwards to make sure the fix did not change what gets found. It did not. Then I ran the headline number a third time, on the fixed code. 93.6 again.</p>
+<p>I would rather you read that here than find it yourself.</p>
+
+<h2>What this does not prove</h2>
+<p>The grading model here is not the one the benchmark's authors used, so none of these numbers can be set beside anyone else's published score. The baselines were each run once. I am one person with a workstation. What I can say is that every comparison on this page was run on the same questions with the same model, and that the losses are on the page with the wins.</p>
+<p>The whole study cost under 200 dollars. The harness, the cost ledger and every result file are in <a href="https://github.com/protechtus/sextant/tree/main/benchmarks/longmemeval">the repository</a>, and the search half reproduces on a laptop with no API key.</p>
+
+<h2>How this was made</h2>
+<div class="made">
+<p>I ran this study with an AI coding agent, Claude. I chose the question, the benchmark and the budget. I decided to run the baseline that might embarrass the product, to keep the losses in, to split the questions before tuning, and to stop and re-plan when the first result came back at 16%. The agent wrote most of the harness, ran the jobs, did the statistics and drafted this page, and I read, questioned and redirected it throughout.</p>
+<p>I think that division of labor is the actual skill now: knowing what to ask for, what to distrust, and when to change course. The numbers are reproducible either way.</p>
+</div>
+
+<p>Both fixes are in Sextant now. It is free and open source. If you run it and it gets something wrong, I would like to know, because apparently that is how it gets better.</p>
+
+<p class="foot">Readers: Claude Haiku 5.5 (smaller) and Claude Sonnet 5.5 (larger). Judge: Claude Opus 5.5 with the benchmark's own grading prompts. Benchmark: LongMemEval, cleaned 2025 release, S and M sets. Corrections to this page are added here with a date.<br><a href="../">Sextant home</a> · <a href="https://github.com/protechtus/sextant">Source</a> · <a href="https://github.com/protechtus/sextant/tree/main/benchmarks/longmemeval">Harness and results</a></p>
+</article>
+
+</main>
+<footer><div class="wrap"><div class="l"><svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true" style="color:var(--muted)"><path d="M16 2 L17.2 4.8 L20 6 L17.2 7.2 L16 10 L14.8 7.2 L12 6 L14.8 4.8 Z" fill="var(--brass)"/><path d="M16 12 L6 25 M16 12 L26 25 M16 12 L16 29.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 25 A13 13 0 0 1 26 25" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg><span>built by <a href="https://protechtus.com">Protechtus LLC</a> · Apache-2.0</span></div><div class="r"><a href="https://github.com/protechtus/sextant">repo</a><a href="https://github.com/protechtus/sextant/tree/main/docs">docs</a><a href="https://github.com/protechtus/sextant/releases">releases</a><span>no trackers on this site</span></div></div></footer>
+<script src="../assets/site.js"></script>
+</body>
+</html>
